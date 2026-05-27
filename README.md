@@ -1,5 +1,147 @@
 # Pull, Otimização e Avaliação de Prompts com LangChain e LangSmith
 
+---
+
+## Técnicas Aplicadas (Fase 2)
+
+### Avaliação do Prompt v1
+
+O prompt original (`bug_to_user_story_v1`) tinha os seguintes problemas que resultavam em scores baixos:
+
+| Problema | Impacto |
+|---|---|
+| Sem persona definida para o modelo | Respostas inconsistentes em tom e nível de detalhe |
+| Instrução vaga ("crie uma user story") | Modelo não sabia qual formato usar |
+| `{bug_report}` duplicado em system e user prompt | Redundância; o modelo recebia o mesmo texto duas vezes |
+| Sem exemplos de entrada/saída | Modelo inventava formatos diferentes a cada resposta |
+| Sem tratamento de edge cases | Bugs complexos ou vagos produziam respostas pobres |
+| Sem processo de raciocínio | Modelo pulava direto para a resposta sem analisar o bug |
+
+Resultado esperado do v1: scores abaixo de 0.6 em F1, Clarity e Precision.
+
+---
+
+### Técnicas escolhidas para o v2
+
+#### 1. Role Prompting
+
+**O que é:** Define uma persona detalhada para o modelo assumir antes de responder.
+
+**Por que foi escolhido:** O v1 não tinha persona, então o modelo respondia como um assistente genérico. Ao definir "Você é um Product Manager Sênior com 10 anos de experiência em metodologias ágeis", o modelo adota automaticamente o vocabulário, estrutura e nível de detalhe esperados de um profissional de produto. Isso melhora diretamente os scores de Clarity (linguagem mais organizada) e Precision (menos alucinações).
+
+**Como foi aplicado:**
+```
+Você é um Product Manager Sênior com 10 anos de experiência em metodologias ágeis (Scrum e Kanban). Seu trabalho é transformar relatos de bugs em User Stories bem estruturadas...
+```
+
+---
+
+#### 2. Chain of Thought (CoT)
+
+**O que é:** Instrui o modelo a raciocinar passo a passo antes de produzir a resposta final.
+
+**Por que foi escolhido:** A conversão de bug report em User Story exige análise: identificar persona, entender o problema, avaliar a complexidade e escolher o formato correto. Sem CoT, o modelo pula direto para a resposta e comete erros estruturais (ex: escolhe o formato errado para um bug complexo). Com CoT, o modelo "pensa" antes de escrever, produzindo respostas mais precisas e completas — o que aumenta o F1-Score (recall e precision simultaneamente).
+
+**Como foi aplicado:**
+```
+## PROCESSO DE ANÁLISE — pense passo a passo antes de escrever
+
+1. Quem é a persona afetada?
+2. O que exatamente está quebrado?
+3. Qual o valor concreto de corrigir isso?
+4. Qual a complexidade do bug? (simples / médio / complexo)
+```
+
+---
+
+#### 3. Few-shot Learning (obrigatório)
+
+**O que é:** Fornece exemplos concretos de entrada e saída para guiar o modelo.
+
+**Por que foi escolhido:** É a técnica com maior impacto prático neste tipo de tarefa. Sem exemplos, cada resposta pode ter um formato diferente — quebrando os avaliadores de F1 e Clarity que esperam estrutura consistente (Dado/Quando/Então, "Como um X, eu quero Y"). Com 3 exemplos cobrindo as 3 complexidades do dataset (simples, médio, complexo), o modelo aprende:
+- O formato exato esperado
+- Como calibrar o nível de detalhe por complexidade
+- Quando incluir seções extras (Contexto Técnico, Tasks)
+
+**Como foi aplicado:** 3 exemplos completos no system prompt, cobrindo:
+- **Simples** (validação de email): formato mínimo com 5 critérios
+- **Médio** (relatório lento): adiciona Contexto Técnico com métricas de performance
+- **Complexo** (falha de autorização): adiciona critérios de segurança, múltiplos conjuntos de critérios e seção de segurança
+
+---
+
+### Comparativo v1 vs v2
+
+| Critério | v1 | v2 |
+|---|---|---|
+| Persona do modelo | Não definida | Product Manager Sênior |
+| Raciocínio | Nenhum | Chain of Thought explícito |
+| Exemplos | Nenhum | 3 exemplos (simples, médio, complexo) |
+| Formato obrigatório | Não especificado | Como/Eu quero/Para que + Dado/Quando/Então |
+| Edge cases | Não tratados | 4 cenários explícitos |
+| Contexto técnico | Ignorado | Incluído para bugs médios/complexos |
+| Duplicação de variável | `{bug_report}` em system e user | Apenas no user prompt |
+
+---
+
+### Resultados Finais
+
+> **Preencha esta seção após executar `python src/evaluate.py`**
+
+| Métrica | v1 (esperado) | v2 (obtido) |
+|---|---|---|
+| Helpfulness | ~0.45 | — |
+| Correctness | ~0.52 | — |
+| F1-Score | ~0.48 | — |
+| Clarity | ~0.50 | — |
+| Precision | ~0.46 | — |
+
+Link do dashboard LangSmith: _preencher após execução_
+
+---
+
+## Como Executar
+
+### Pré-requisitos
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+Configure o arquivo `.env` com base no `.env.example`:
+
+```
+LANGCHAIN_API_KEY=...
+LANGSMITH_API_KEY=...
+LANGSMITH_PROJECT=prompt-optimization-challenge-resolved
+USERNAME_LANGSMITH_HUB=seu_username
+LLM_PROVIDER=openai          # ou google
+LLM_MODEL=gpt-4o-mini        # ou gemini-2.5-flash
+EVAL_MODEL=gpt-4o            # ou gemini-2.5-flash
+OPENAI_API_KEY=...           # se LLM_PROVIDER=openai
+GOOGLE_API_KEY=...           # se LLM_PROVIDER=google
+```
+
+### Ordem de execução
+
+```bash
+# 1. Pull do prompt v1 do LangSmith Hub
+python src/pull_prompts.py
+
+# 2. Push do prompt v2 otimizado
+python src/push_prompts.py
+
+# 3. Avaliação automática (puxa v2 do Hub e calcula métricas)
+python src/evaluate.py
+
+# 4. Testes de validação estrutural
+pytest tests/test_prompts.py
+```
+
+---
+
 ## Objetivo
 
 Você deve entregar um software capaz de:
