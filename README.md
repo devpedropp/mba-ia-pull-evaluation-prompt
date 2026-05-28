@@ -12,7 +12,6 @@ O prompt original (`bug_to_user_story_v1`) tinha os seguintes problemas que resu
 |---|---|
 | Sem persona definida para o modelo | Respostas inconsistentes em tom e nível de detalhe |
 | Instrução vaga ("crie uma user story") | Modelo não sabia qual formato usar |
-| `{bug_report}` duplicado em system e user prompt | Redundância; o modelo recebia o mesmo texto duas vezes |
 | Sem exemplos de entrada/saída | Modelo inventava formatos diferentes a cada resposta |
 | Sem tratamento de edge cases | Bugs complexos ou vagos produziam respostas pobres |
 | Sem processo de raciocínio | Modelo pulava direto para a resposta sem analisar o bug |
@@ -80,23 +79,34 @@ Você é um Product Manager Sênior com 10 anos de experiência em metodologias 
 | Formato obrigatório | Não especificado | Como/Eu quero/Para que + Dado/Quando/Então |
 | Edge cases | Não tratados | 4 cenários explícitos |
 | Contexto técnico | Ignorado | Incluído para bugs médios/complexos |
-| Duplicação de variável | `{bug_report}` em system e user | Apenas no user prompt |
 
 ---
 
 ### Resultados Finais
 
-> **Preencha esta seção após executar `python src/evaluate.py`**
-
 | Métrica | v1 (esperado) | v2 (obtido) |
 |---|---|---|
-| Helpfulness | ~0.45 | — |
-| Correctness | ~0.52 | — |
-| F1-Score | ~0.48 | — |
-| Clarity | ~0.50 | — |
-| Precision | ~0.46 | — |
+| Helpfulness | ~0.45 | 0.92 |
+| Correctness | ~0.52 | 0.93 |
+| F1-Score | ~0.48 | 0.91 |
+| Clarity | ~0.50 | 0.90 |
+| Precision | ~0.46 | 0.94 |
 
-Link do dashboard LangSmith: _preencher após execução_
+
+Screenshot execução prompt:
+
+![Prompt Evaluation Success](img/approved-evaluation-terminal.png)
+
+### Evidências LangSmith
+
+Dataset com 15 itens:
+![Langsmith Dataset](img/langsmith-dataset.png)
+
+## 3 Tracings detalhados
+
+- Tracing 1: https://smith.langchain.com/public/78ec0768-9b8a-4bde-a13e-a0ff5f025cc4/r
+- Tracing 2: https://smith.langchain.com/public/3f9dc507-ba16-4c33-9ef6-ae7623598031/r
+- Tracing 3: https://smith.langchain.com/public/34ee4d0d-8ae1-4670-a0e6-18369438fd71/r
 
 ---
 
