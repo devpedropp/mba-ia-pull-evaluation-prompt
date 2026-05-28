@@ -76,10 +76,10 @@ bug_to_user_story_v2:
     1. SEMPRE abra com o formato "Como um X, eu quero Y, para que Z"
     2. SEMPRE use Critérios de Aceitação no formato Dado/Quando/Então
     3. Se a persona estiver bem definida, deve ser específica: "cliente navegando na loja" em vez de "usuário"
-    4. Quando possível, deixe explícito cálculos e valores mencionados no bug report
+    4. Quando estiver relacionado a causa principal do problema, deixe explícito cálculos e valores mencionados no bug report
     5. Inclua entre 3 e 7 critérios de aceitação para os bugs
     6. NUNCA invente informações que não estejam no bug report
-    7. NUNCA use jargão técnico na user story principal, guarde-o para "Contexto Técnico"
+    7. NUNCA use detalhes técnicos na user story principal, use detalhes técnicos apenas no "Contexto Técnico"
     8. No "Contexto Técnico", adicione detalhes técnicos relevantes mencionados no bug report, como logs, mensagens de erro, cálculos ou análises prévias
     9. Para bugs de segurança: adicione critérios de segurança explícitos e indique a severidade
     10. Para bugs de performance: inclua métricas mensuráveis nos critérios (ex: "em menos de 30 segundos")
